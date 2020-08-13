@@ -34,7 +34,7 @@ df['suspension']=df['Suspension Indicator'].str.strip().str.upper()
 df['revocation']=df['Revocation Indicator'].str.strip().str.upper()
 df=df[['type','vin','class','city','state','zip','county','modelyear','make','body','fuel','unladenwt','maxgrosswt',
        'passengers','validdate','expiredate','color','scofflaw','suspension','revocation']].reset_index(drop=True)
-df.to_csv(path+'dmv20200809.csv',index=False)
+df.to_csv(path+'dmv202007full.csv',index=False)
 
 
 
@@ -44,7 +44,7 @@ engine=sal.create_engine(str(eg))
 con=engine.connect()
 trans=con.begin()
 sql="""
-    CREATE TABLE dmv20200809
+    CREATE TABLE dmv202007full
     (
       type VARCHAR(10),
       vin VARCHAR(50),
@@ -79,8 +79,8 @@ engine=sal.create_engine(str(eg))
 con=engine.connect()
 trans=con.begin()
 sql="""
-    COPY dmv20200809
-    FROM '/home/mayijun/DMV2020/dmv20200809.csv'
+    COPY dmv202007full
+    FROM '/home/mayijun/DMV2020/dmv202007full.csv'
     DELIMITER ','
     CSV header
     """
@@ -89,3 +89,53 @@ trans.commit()
 con.close()
 
 
+
+
+
+
+
+
+
+
+
+
+
+df=pd.read_csv(path+'dmv202008trimmed.csv',dtype=str)
+
+# Set up database table schema
+engine=sal.create_engine(str(eg))
+con=engine.connect()
+trans=con.begin()
+sql="""
+    CREATE TABLE dmv202008trimmed
+    (
+      VIN VARCHAR(50),
+      County VARCHAR(50),
+      ModelYear REAL,
+      Make VARCHAR(10),
+      RegValDate DATE,
+      RegExpDate DATE,
+      RegClass VARCHAR(10),
+      Reg_Category VARCHAR(50),
+      Zip VARCHAR(10)
+      )
+    """
+con.execute(sql)
+trans.commit()
+con.close()
+
+
+# Manually copy the csv to the cloud
+# Copy the csv to the table
+engine=sal.create_engine(str(eg))
+con=engine.connect()
+trans=con.begin()
+sql="""
+    COPY dmv202008trimmed
+    FROM '/home/mayijun/DMV2020/dmv202008trimmed.csv'
+    DELIMITER ','
+    CSV header
+    """
+con.execute(sql)
+trans.commit()
+con.close()
