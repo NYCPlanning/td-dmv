@@ -139,3 +139,67 @@ sql="""
 con.execute(sql)
 trans.commit()
 con.close()
+
+
+
+
+
+
+
+
+engine=sal.create_engine(str(eg))
+con=engine.connect()
+sql="""
+    WITH dmv7 AS (SELECT vin AS vin7,county AS county7, modelyear AS modelyear7, make AS make7, regvaldate AS regvaldate7, 
+    regexpdate AS regexpdate7,regclass AS regclass7, reg_category AS reg_category7, zip AS zip7 FROM dmv202007trimmed),
+    dmv8 AS (SELECT vin AS vin8,county AS county8, modelyear AS modelyear8, make AS make8, regvaldate AS regvaldate8, 
+    regexpdate AS regexpdate8,regclass AS regclass8, reg_category AS reg_category8, zip AS zip8 FROM dmv202008trimmed)
+    SELECT * FROM dmv7 FULL OUTER JOIN dmv8 ON dmv7.vin7=dmv8.vin8 WHERE dmv7.vin7 IS NULL OR dmv8.vin8 IS NULL
+    """
+df=pd.read_sql_query(sql,con)
+df['id']=df.index
+df=pd.wide_to_long(df,stubnames=['vin','county','modelyear','make','regvaldate','regexpdate','regclass',
+                                 'reg_category','zip'],i='id',j='month').reset_index(drop=False)
+df=df[pd.notna(df['vin'])].reset_index(drop=True)
+
+
+
+
+
+
+
+
+engine=sal.create_engine(str(eg))
+con=engine.connect()
+sql="""
+    WITH dmv7 AS (SELECT vin AS vin7,county AS county7, modelyear AS modelyear7, make AS make7, regvaldate AS regvaldate7, 
+    regexpdate AS regexpdate7,regclass AS regclass7, reg_category AS reg_category7, zip AS zip7 FROM dmv202007trimmed),
+    dmv8 AS (SELECT vin AS vin8,county AS county8, modelyear AS modelyear8, make AS make8, regvaldate AS regvaldate8, 
+    regexpdate AS regexpdate8,regclass AS regclass8, reg_category AS reg_category8, zip AS zip8 FROM dmv202008trimmed)
+    SELECT * FROM dmv7 INNER JOIN dmv8 ON dmv7.vin7=dmv8.vin8
+    WHERE dmv8.regexpdate8-dmv7.regexpdate7<>730 AND dmv8.regexpdate8-dmv7.regexpdate7<>0
+    """
+df=pd.read_sql_query(sql,con)
+
+    
+
+
+k=df[(df['vin7']==df['vin8'])&(df['county7']==df['county8'])&(df['modelyear7']==df['modelyear8'])&(df['make7']==df['make8'])&(df['regvaldate7']==df['regvaldate8'])&(df['regexpdate7']==df['regexpdate8'])&(df['regclass7']==df['regclass8'])&(df['reg_category7']==df['reg_category8'])&(df['zip7']==df['zip08'])]
+k['days7']=[x.days for x in k['regexpdate7']-k['regvaldate7']]
+k=k[k['days7']==730]
+k['days7'].hist()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
